@@ -1,4 +1,23 @@
 #Encode: utf-8
+=begin
+This small script will help me to create CERTIFICATE SIGNING REQUESTS with less clicks. 
+Copyright (C) 2015 Timo Schlappinger
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+=end
+
 require 'tk'
 require 'tkextlib/tile'
 
@@ -9,7 +28,6 @@ TkGrid.columnconfigure root, 0, :weight => 1; TkGrid.rowconfigure root, 0, :weig
 #Variablen
 $domain = TkVariable.new; $dir = TkVariable.new; $key = TkVariable.new; $stdKkey = TkVariable.new;
 keysize=[4096,2048,1024]
-#stdKey='4096'
 
 #Gui Elemente
 #Text
@@ -51,7 +69,7 @@ def createKey
      else
         mykey = $key.get
         $btnCSR.state('enabled')
-        system ("cmd.exe /c \"C:\\Program Files\\openssl\\openssl.exe\" genrsa -out #{$dir}\\#{$domain}.key #{mykey}") 
+        system ("cmd.exe /c \"openssl\" genrsa -out #{$dir}\\#{$domain}.key #{mykey}") 
      end
     rescue
          $domain== ''
@@ -61,7 +79,7 @@ end
 
 def createCSR
      begin
-         system ("cmd.exe /c \"C:\\Program Files\\openssl\\openssl.exe\" req -new -key #{$dir}\\#{$domain}.key -out #{$dir}\\#{$domain}.csr -sha512")
+         system ("cmd.exe /c \"openssl\" req -new -key #{$dir}\\#{$domain}.key -out #{$dir}\\#{$domain}.csr -sha512")
          Tk::messageBox :message => "Finished! You will find it in #{$dir}\/", :title => 'CERTIFICATE REQUEST'
      rescue
          Tk::messageBox :message => "Could not be finished!", :title => 'CERTIFICATE REQUEST'
