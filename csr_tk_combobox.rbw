@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby 
 #Encode: utf-8
 =begin
 This small script will help me to create CERTIFICATE SIGNING REQUESTS with less clicks. 
@@ -22,6 +23,7 @@ Copyright (C) 2015 Timo Schlappinger
 require 'tk'
 require 'tkextlib/tile'
 
+
 root = TkRoot.new {title "Create CSR for SSL"}
 content = Tk::Tile::Frame.new(root) {padding "3 3 8 8"}.grid( :sticky => 'nsew')
 TkGrid.columnconfigure root, 0, :weight => 1; TkGrid.rowconfigure root, 0, :weight => 1
@@ -30,6 +32,11 @@ TkGrid.columnconfigure root, 0, :weight => 1; TkGrid.rowconfigure root, 0, :weig
 $domain = TkVariable.new; $dir = TkVariable.new; $key = TkVariable.new; $stdKkey = TkVariable.new;
 keysize=[4096,2048,1024]
 
+begin
+    about = TkPhotoImage.new(:file => "about.gif")
+rescue
+    puts 'Could not find about.gif!'
+end
 
 #Gui Elemente
 #Text
@@ -49,6 +56,7 @@ $btnKey.state('disabled')
 $btnCSR = Tk::Tile::Button.new(content) {text 'create CSR'; command {createCSR}; state 'disabled'}.grid( :column => 2, :row => 4, :sticky => 'w')
 $btnDir = Tk::Tile::Button.new(content) {text 'Dir'; command {setDir}}.grid( :column => 2, :row => 1, :sticky => 'w')
 Tk::Tile::Button.new(content) {text 'Exit'; command {exit}}.grid( :column => 3, :row => 4, :sticky => 'e')
+Tk::Tile::Button.new(content) {text 'About'; command {about_us}; image about}.grid( :column => 3, :row => 1, :sticky => 'w')
 
 TkWinfo.children(content).each {|w| TkGrid.configure w, :padx => 5, :pady => 5}
 #Set start focus to Dir button
@@ -120,6 +128,24 @@ def platform
         :other
     end
 end
+
+def about_us
+    t = TkToplevel.new(root)
+	t.title 'License Information'
+	content = Tk::Tile::Frame.new(t) {padding "3 3 8 8"}.grid( :sticky => 'nsew')
+	Tk::Tile::Label.new(content) {text 'Copyright (C) 2015 Timo Schlappinger'}.grid( :column => 1, :row => 1, :sticky => 'we', :columnspan => '2');
+	txt = TkText.new(content) {width  '80'; height '20'}.grid( :column => 2, :row => 2, :sticky => 'e')
+	begin
+	    infile = File.open 'license.txt','r'
+	    while line = infile.gets
+	       txt.insert 'end', line
+	    end
+		infile.close
+	end
+	Tk::Tile::Label.new(content) {text 'Email: tim2611@gmail.com '}.grid( :column => 1, :row => 4, :sticky => 'we', :columnspan => '2');
+	Tk::Tile::Button.new(content) {text 'Ok'; command {t.destroy}}.grid( :column => 2, :row => 4, :sticky => 'e')
+end
+
 $os = platform
 
 Tk.mainloop
