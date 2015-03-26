@@ -1,6 +1,7 @@
 #Encode: utf-8
 =begin
 This small script will help me to create CERTIFICATE SIGNING REQUESTS with less clicks. 
+
 Copyright (C) 2015 Timo Schlappinger
 
     This program is free software: you can redistribute it and/or modify
@@ -29,6 +30,7 @@ TkGrid.columnconfigure root, 0, :weight => 1; TkGrid.rowconfigure root, 0, :weig
 $domain = TkVariable.new; $dir = TkVariable.new; $key = TkVariable.new; $stdKkey = TkVariable.new;
 keysize=[4096,2048,1024]
 
+
 #Gui Elemente
 #Text
 $edtDomain = Tk::Tile::Entry.new(content) {width 7; textvariable $domain}.grid( :column => 2, :row => 2, :sticky => 'we')
@@ -53,6 +55,7 @@ TkWinfo.children(content).each {|w| TkGrid.configure w, :padx => 5, :pady => 5}
 $btnDir.focus
 root.bind("Return") {calculate}
 
+
 #Funktionen
 def exit
     root.destroy
@@ -67,10 +70,14 @@ def createKey
         Tk::messageBox :message => 'Please set directory...', :title => "oh no..."
         $btnDir.focus
      else
-        mykey = $key.get
+        bits = $key.get
         $btnCSR.state('enabled')
-        system ("cmd.exe /c \"openssl\" genrsa -out #{$dir}\\#{$domain}.key #{mykey}") 
-     end
+		if $os == 'windows'
+			system ("cmd.exe /c \"openssl\" genrsa -out #{$dir}\\#{$domain}.key #{bits}")
+	    elsif $os == 'unix'
+			system ("xterm -e openssl genrsa -out #{$dir}//#{$domain}.key #{bits}")
+		end
+     end 
     rescue
          $domain== ''
 	     Tk::messageBox :message => "Could not be created!", :title => 'KEY FILE GENERATION'
@@ -79,8 +86,12 @@ end
 
 def createCSR
      begin
-         system ("cmd.exe /c \"openssl\" req -new -key #{$dir}\\#{$domain}.key -out #{$dir}\\#{$domain}.csr -sha512")
-         Tk::messageBox :message => "Finished! You will find it in #{$dir}\/", :title => 'CERTIFICATE REQUEST'
+	    if $os == 'windows' 
+           system ("cmd.exe /c \"openssl\" req -new -key #{$dir}\\#{$domain}.key -out #{$dir}\\#{$domain}.csr -sha512")
+        elsif $os == 'unix'
+		   system ("xterm -e openssl req -new -key #{$dir}//#{$domain}.key -out #{$dir}//#{$domain}.csr -sha512")
+		end
+		 Tk::messageBox :message => "Finished! You will find it in #{$dir}\/", :title => 'CERTIFICATE REQUEST'
      rescue
          Tk::messageBox :message => "Could not be finished!", :title => 'CERTIFICATE REQUEST'
     end
@@ -88,7 +99,7 @@ end
 
 def setDir
      begin
-         $dir = Tk::chooseDirectory
+	     $dir = Tk::chooseDirectory
          $edtDomain.state('enabled')
          $key.state('enabled')
          $btnKey.state('enabled')
@@ -97,5 +108,18 @@ def setDir
          Tk::messageBox :message => "Could not set directory!", :title => 'CHOOSE DIRECTORY'
      end
 end
+
+def platform
+  $RUBY_PLATFORM ||=
+    case RUBY_PLATFORM.downcase
+      when /linux|bsd|solaris|hpux|powerpc-darwin/
+        then $os= 'unix'
+      when /mswin32|mingw32|bccwin32/
+        then $os='windows'
+      else
+        :other
+    end
+end
+$os = platform
 
 Tk.mainloop
